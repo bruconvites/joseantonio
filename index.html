@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Convite - José Antônio 3 Anos</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#06122e;font-family:Arial,Helvetica,sans-serif}
+
+  .screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#06122e}
+  .screen.active{display:flex}
+
+  /* Palco: mantém a proporção da imagem para os botões ficarem sempre alinhados */
+  .stage{position:relative;height:100dvh;width:calc(100dvh * var(--ratio));max-width:100vw;max-height:calc(100vw / var(--ratio))}
+  .stage img{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+
+  /* Tela 1: qualquer parte da tela é clicável */
+  #s-primeira{cursor:pointer}
+  #s-primeira .stage{--ratio:.5629}
+
+  /* Tela do vídeo */
+  #s-video{background:#000}
+  #s-video video{width:100%;height:100%;object-fit:contain;background:#000}
+  #btn-pular{
+    position:absolute;right:calc(14px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));
+    padding:7px 14px;font-size:13px;color:rgba(255,255,255,.85);
+    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.35);border-radius:20px;
+    cursor:pointer;backdrop-filter:blur(3px);transition:.2s;
+  }
+  #btn-pular:hover{background:rgba(0,0,0,.6);color:#fff}
+  #tap-play{
+    position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    color:#fff;font-size:18px;background:rgba(0,0,0,.5);cursor:pointer
+  }
+
+  /* Tela interativa */
+  #s-interativo .stage{--ratio:.5629}
+  #s-presentes .stage{--ratio:.4615}
+
+  .hot{position:absolute;display:block;cursor:pointer;border-radius:50%}
+  .hot:active{background:rgba(255,255,255,.15)}
+  /* Posições (em %) dos três botões redondos da imagem interativo.jpg */
+  #h-confirmar{left:8%;top:79%;width:27.5%;height:15.5%}
+  #h-local{left:36%;top:79%;width:27.5%;height:15.5%}
+  #h-presentes{left:64.5%;top:79%;width:27.5%;height:15.5%}
+
+  .btn-voltar{
+    position:absolute;left:50%;top:calc(2% + env(safe-area-inset-top));transform:translateX(-50%);
+    padding:9px 20px;font-size:clamp(13px,3.6vw,16px);font-weight:bold;white-space:nowrap;
+    color:#fff;background:linear-gradient(#d61f2c,#8e0f1a);
+    border:2px solid #fff;border-radius:24px;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.45);
+  }
+  .btn-voltar:active{transform:translateX(-50%) scale(.96)}
+</style>
+</head>
+<body>
+
+<!-- 1. Primeira página -->
+<section class="screen active" id="s-primeira" aria-label="Abrir convite">
+  <div class="stage"><img src="primeira.jpg" alt="Clique no envelope para abrir o seu convite"></div>
+</section>
+
+<!-- 2. Vídeo -->
+<section class="screen" id="s-video">
+  <video id="video" src="video.mp4" playsinline preload="auto"></video>
+  <div id="tap-play">▶ Toque para iniciar</div>
+  <button id="btn-pular" type="button">Pule a introdução</button>
+</section>
+
+<!-- 3. Convite interativo -->
+<section class="screen" id="s-interativo">
+  <div class="stage">
+    <img src="interativo.jpg" alt="Convite José Antônio 3 anos">
+    <button class="btn-voltar" id="voltar-inicio" type="button">Clique aqui para voltar</button>
+    <a class="hot" id="h-confirmar" href="https://wa.link/z9m5gt" target="_blank" rel="noopener" aria-label="Confirmar presença"></a>
+    <a class="hot" id="h-local" href="https://maps.app.goo.gl/zPFeyriovxEE3j1x5?g_st=iw" target="_blank" rel="noopener" aria-label="Acessar localização"></a>
+    <a class="hot" id="h-presentes" href="#" aria-label="Dicas de presente"></a>
+  </div>
+</section>
+
+<!-- 4. Sugestões de presente -->
+<section class="screen" id="s-presentes">
+  <div class="stage">
+    <img src="presentes.jpg" alt="Sugestões de presente">
+    <button class="btn-voltar" id="voltar-interativo" type="button">Clique aqui para voltar</button>
+  </div>
+</section>
+
+<script>
+(function () {
+  var screens = {
+    primeira: document.getElementById('s-primeira'),
+    video: document.getElementById('s-video'),
+    interativo: document.getElementById('s-interativo'),
+    presentes: document.getElementById('s-presentes')
+  };
+  var video = document.getElementById('video');
+  var tapPlay = document.getElementById('tap-play');
+
+  function show(name) {
+    for (var k in screens) screens[k].classList.toggle('active', k === name);
+    if (name !== 'video') video.pause();
+  }
+
+  function playVideoFromStart() {
+    show('video');
+    tapPlay.style.display = 'none';
+    try { video.currentTime = 0; } catch (e) {}
+    var p = video.play();
+    if (p && p.catch) {
+      p.catch(function () { tapPlay.style.display = 'flex'; });
+    }
+  }
+
+  // Pré-carrega as imagens seguintes
+  ['interativo.jpg', 'presentes.jpg'].forEach(function (src) { new Image().src = src; });
+
+  // 1 -> vídeo (clique em qualquer lugar)
+  screens.primeira.addEventListener('click', playVideoFromStart);
+
+  // Vídeo -> interativo (botão pular ou fim do vídeo)
+  document.getElementById('btn-pular').addEventListener('click', function () { show('interativo'); });
+  video.addEventListener('ended', function () { show('interativo'); });
+  tapPlay.addEventListener('click', function () {
+    tapPlay.style.display = 'none';
+    video.play();
+  });
+
+  // Interativo -> dicas de presente
+  document.getElementById('h-presentes').addEventListener('click', function (e) {
+    e.preventDefault();
+    show('presentes');
+  });
+
+  // Presentes -> interativo
+  document.getElementById('voltar-interativo').addEventListener('click', function () { show('interativo'); });
+
+  // Interativo -> início do vídeo
+  document.getElementById('voltar-inicio').addEventListener('click', playVideoFromStart);
+})();
+</script>
+</body>
+</html>
